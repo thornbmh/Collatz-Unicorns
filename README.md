@@ -1,6 +1,6 @@
 Collatz Unicorns — Analysis Code
 Companion code for:
-> M. H. Thornburg, *Collatz Unicorns: Criticality at the Edge of Provability — Information Persistence, 1/f Noise, and Unprovable Divergence in the Collatz Map* (2026). Preprint on the PhilSci-Archive.
+> M. H. Thornburg, *Collatz Unicorns: Criticality at the Edge of Provability — Information Persistence, 1/f Noise, and Unprovable Divergence in the Collatz Map* (2026).
 The single script `collatz_spectral.py` reproduces every empirical figure reported in Section 5.1 of the paper.
 What it computes
 All analysis uses the shortcut Collatz map T(x) = (3x+1)/2 for odd x, x/2 for even x, and the binary parity vector p_i = x_i mod 2 of each trajectory. The script:
