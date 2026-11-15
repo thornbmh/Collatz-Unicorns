@@ -1,7 +1,7 @@
 Collatz Unicorns — Analysis Code
 Companion code for:
-> M. H. Thornburg, *Collatz Unicorns: Criticality at the Edge of Provability — Information Persistence, 1/f Noise, and Unprovable Divergence in the Collatz Map* (2026).
-The single script `collatz_spectral.py` reproduces every empirical figure reported in Section 5.1 of the paper.
+> M. H. Thornburg, \\\*Collatz Unicorns: Criticality at the Edge of Provability — Information Persistence, 1/f Noise, and Unprovable Divergence in the Collatz Map\\\* (2026). Preprint on the PhilSci-Archive.
+The single script `collatz\\\_spectral.py` reproduces every empirical figure reported in Section 5.1 of the paper.
 What it computes
 All analysis uses the shortcut Collatz map T(x) = (3x+1)/2 for odd x, x/2 for even x, and the binary parity vector p_i = x_i mod 2 of each trajectory. The script:
 Finds record climbers. Scans n < 100,000 for peak-excursion records and adds the well-known large climbers (27, 703, 626331, 837799, ..., 1980976057694848447). Every trajectory statistic is recomputed from scratch — nothing is taken from the literature.
@@ -23,9 +23,9 @@ NumPy (any recent version; developed against 2.5)
 No other dependencies. Arbitrary-precision integers are native Python.
 Running
 ```
-python3 collatz_spectral.py
+python3 collatz\\\_spectral.py
 ```
-Runtime is on the order of one to two minutes on a laptop (the record scan to 10^5 dominates). All randomness is seeded (`numpy.random.default_rng(27)`), so the control-ensemble statistics are exactly reproducible; tiny differences in the last reported digit may occur across NumPy versions.
+Runtime is on the order of one to two minutes on a laptop (the record scan to 10^5 dominates). All randomness is seeded (`numpy.random.default\\\_rng(27)`), so the control-ensemble statistics are exactly reproducible; tiny differences in the last reported digit may occur across NumPy versions.
 Methods in brief
 DFA-1: cumulative profile of the centered parity sequence; linear detrending in windows of geometrically spaced sizes s; H is the log–log slope of the RMS fluctuation F(s).
 Spectral slope: periodogram of the centered sequence, averaged in log-spaced frequency bins; β is the negative log–log slope.
@@ -33,6 +33,6 @@ Ascent = steps from the seed to the trajectory's maximum; descent = steps from t
 Caveats carried in the paper apply here too: the H ≈ 0.66 result rests on a single trajectory, reflects selection across thirteen comparisons, and does not fully control for record-ascent conditioning.
 Citation
 If you use this code, please cite the paper above. The code itself may be cited as:
-> Thornburg, M. H. (2026). *collatz_spectral.py* — analysis code for "Collatz Unicorns: Criticality at the Edge of Provability."
+> Thornburg, M. H. (2026). \\\*collatz\\\_spectral.py\\\* — analysis code for "Collatz Unicorns: Criticality at the Edge of Provability."
 Acknowledgment
 Developed in collaboration with Claude (Anthropic); all results were verified by the author.
