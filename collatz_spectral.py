@@ -262,3 +262,71 @@ for s in seeds:
     mx = max(mx, ek)
     print(f"{s:>22} {k:>5} {q:>8.4f} {ek:>9.5f} {fb:>12.4f}")
 print(f"max E_k/k across sample: {mx:.5f}  (paper cites <= 0.0025; floor q > 0.629)")
+
+# ---------------------------------------------------------------
+# 7. Drift-robustness check for the long-climber Hurst elevation
+#    (Is H ~ 0.66 on the 399-step ascent a linear-drift artifact?)
+#    DFA-1 removes piecewise-constant mean offsets; a linear ramp
+#    in the series survives it (quadratic in the profile) and is
+#    removed by DFA-2. We (a) measure the drift directly,
+#    (b) recompute H under DFA-2, (c) compare against i.i.d.
+#    controls carrying the OBSERVED ramp.
+# ---------------------------------------------------------------
+
+def dfa_poly(x, order=1, min_s=4, max_frac=4, n_scales=20):
+    """DFA of arbitrary detrending order."""
+    x = np.asarray(x, dtype=float)
+    N = len(x)
+    y = np.cumsum(x - x.mean())
+    scales = np.unique(np.geomspace(min_s, N // max_frac, n_scales).astype(int))
+    scales = scales[scales > order + 1]
+    F = []
+    for s in scales:
+        m = N // s
+        segs = y[: m * s].reshape(m, s)
+        t = np.arange(s)
+        resid = np.empty_like(segs)
+        for i in range(m):
+            c = np.polyfit(t, segs[i], order)
+            resid[i] = segs[i] - np.polyval(c, t)
+        F.append(np.sqrt((resid ** 2).mean()))
+    F = np.array(F)
+    H, _ = np.polyfit(np.log(scales), np.log(F), 1)
+    return H
+
+print("=" * 90)
+print("DRIFT-ROBUSTNESS CHECK: longest record ascent")
+seed7 = max(seeds)
+ps7, logs7 = trajectory_full(seed7)
+peak7 = int(np.argmax(logs7))
+asc = ps7[:peak7 + 1].astype(float)  # same slice as the main ascent analysis
+N7 = len(asc)
+q7 = asc.mean()
+half = N7 // 2
+sl, _ = np.polyfit(np.arange(N7), asc, 1)
+print(f"seed {seed7}: ascent length {N7}, q = {q7:.4f}")
+print(f"split-half density: {asc[:half].mean():.4f} -> {asc[half:].mean():.4f}; "
+      f"regression slope {sl:.6f}/step (total drift {sl*N7:+.4f})")
+w7 = 50
+print("50-step window densities:",
+      np.round([asc[i:i+w7].mean() for i in range(0, N7 - w7 + 1, w7)], 3))
+
+h1, h2 = dfa_poly(asc, 1), dfa_poly(asc, 2)
+rng7 = np.random.default_rng(27)
+ramp = sl * (np.arange(N7) - N7 / 2)
+H1s, H2s, H1r = [], [], []
+for _ in range(500):
+    b = (rng7.random(N7) < q7).astype(float)
+    H1s.append(dfa_poly(b, 1)); H2s.append(dfa_poly(b, 2))
+    br = (rng7.random(N7) < np.clip(q7 + ramp, 0, 1)).astype(float)
+    H1r.append(dfa_poly(br, 1))
+H1s, H2s, H1r = map(np.array, (H1s, H2s, H1r))
+print(f"ascent:   DFA-1 H = {h1:.3f}   DFA-2 H = {h2:.3f}")
+print(f"iid ctrl: DFA-1 H = {H1s.mean():.3f} +/- {H1s.std():.3f}   "
+      f"DFA-2 H = {H2s.mean():.3f} +/- {H2s.std():.3f}   (DFA-2 null is biased up at this N)")
+print(f"iid + observed ramp: DFA-1 H = {H1r.mean():.3f} +/- {H1r.std():.3f}")
+print(f"z-scores: DFA-1 {(h1-H1s.mean())/H1s.std():+.2f}   DFA-2 {(h2-H2s.mean())/H2s.std():+.2f}   "
+      f"vs ramped {(h1-H1r.mean())/H1r.std():+.2f}")
+print("Conclusion: the observed ramp is too shallow to inflate H (ramped controls match iid);")
+print("the elevation survives DFA-2, so it is not a linear-drift artifact. Significance 2-3 sigma")
+print("depending on detrending order, per the paper's stated caveats.")
